@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# This script takes dataset and generates new one with some datapoints being relabeled to make it noize
+# This script takes dataset and generates new one with some datapoints being relabeled to make it noisy
 
 import os
 import shutil
