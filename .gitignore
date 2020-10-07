@@ -1,0 +1,14 @@
+# IDE specific
+
+.idea
+venv
+
+# non-code files
+
+*.tgz
+*.csv
+*.txt
+
+# datasets
+
+imagewoof2-320*
