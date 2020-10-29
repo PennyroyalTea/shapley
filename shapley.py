@@ -1,3 +1,5 @@
+from torch.utils.data import Dataset
+
 import random
 
 class Shapley:
@@ -9,11 +11,17 @@ class Shapley:
 
 
     def __init__(self, dataset):
+        """
+        Constructor which takes the dataset
+        :param dataset: Object of class torch.utils.data.Dataset.
+        """
         self.dataset = dataset
         self.shapley_vals = [0] * len(dataset)
-        pass
 
     def calculate_shapley_values(self):
+        """
+        calculates shapley values using Monte-Carlo approach
+        """
         permutation = list(range(len(dataset)))
 
         V_D = train_on_subset(permutation).eval() # score of fully-trained model
