@@ -43,6 +43,7 @@ def train_on_subset(model,
                     batch_size=16, epochs=5,
                     criterion=None,
                     optimizer=None):
+
     debug_step = 100 # debug output running loss every x batches
 
     if optimizer is None:
@@ -50,6 +51,8 @@ def train_on_subset(model,
 
     if criterion is None:
         criterion = torch.nn.CrossEntropyLoss()
+
+    print('exp {} : Starting Training'.format(exp_id))
 
     # turn on training mode
     model.train()
@@ -74,7 +77,7 @@ def train_on_subset(model,
 
         # log epoch' val score
         val_score = get_score(model, val_set, batch_size)
-        writer.add_scalars('loss/val', val_score, batches_processed)
+        writer.add_scalar('loss/val', val_score, batches_processed)
 
         for i, data in enumerate(train_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
