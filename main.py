@@ -59,14 +59,13 @@ train_data = datasets.ImageFolder(
     root="./imagewoof2-320/train",
     transform=data_transforms
 )
-# trainloader = data.DataLoader(
-#     train_data,
-#     shuffle=True,
-#     batch_size=16
-# )
 
-###
+# train_on_subset(model=model,
+#                 train_set=train_data, val_set=val_data,
+#                 permutation=list(range(len(train_data))))
 
-train_on_subset(model, train_data, list(range(len(train_data))))
-
-print(get_score(model, val_data))
+monte_carlo(
+    train_set=train_data,
+    val_set=val_data,
+    model_class=models.resnet18
+    )
