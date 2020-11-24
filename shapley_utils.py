@@ -3,6 +3,9 @@ import torch.nn
 import torch.utils.data
 
 from torch.utils.data import DataLoader, SubsetRandomSampler
+from torch.utils.tensorboard import SummaryWriter
+
+from trains import Task
 
 def get_score(model, val_set, batch_size=16):
 
@@ -16,6 +19,7 @@ def get_score(model, val_set, batch_size=16):
 
     total_loss = 0
 
+    model.eval()
     with torch.no_grad():
         for i, data in enumerate(val_loader):
             # get the inputs; data is a list of [inputs, labels]
@@ -32,7 +36,10 @@ def get_score(model, val_set, batch_size=16):
 
     return total_loss / len(val_set)
 
-def train_on_subset(model,  train_set, permutation,
+def train_on_subset(model,
+                    train_set, val_set,
+                    permutation,
+                    exp_id = -1,
                     batch_size=16, epochs=5,
                     criterion=None,
                     optimizer=None):
@@ -44,14 +51,31 @@ def train_on_subset(model,  train_set, permutation,
     if criterion is None:
         criterion = torch.nn.CrossEntropyLoss()
 
+    # turn on training mode
+    model.train()
+
+    # add trains
+    task = Task.init(project_name='astral', task_name='train_on_subset_{}'.format(exp_id))
+
+    # summaryWriter for logging
+    writer = SummaryWriter()
+
     train_loader = DataLoader(
         train_set,
         batch_size=batch_size,
         sampler=SubsetRandomSampler(indices=permutation)
     )
 
+    batches_processed = 0
+
     for epoch in range(epochs):  # loop over the dataset multiple times
+
         running_loss = 0.0
+
+        # log epoch' val score
+        val_score = get_score(model, val_set, batch_size)
+        writer.add_scalars('loss/val', val_score, batches_processed)
+
         for i, data in enumerate(train_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
@@ -68,10 +92,17 @@ def train_on_subset(model,  train_set, permutation,
             loss.backward()
             optimizer.step()
 
+            # update statistics
             running_loss += loss.item()
-            # print statistics
+            batches_processed += 1
+
+            # log running train score
             if debug_step != -1 and i % debug_step == (debug_step - 1):
                 print('[%d, %5d] loss: %.7f' %
                       (epoch + 1, i + 1, running_loss / (debug_step * batch_size)))
+                writer.add_scalar('loss/train', running_loss / (debug_step * batch_size), batches_processed)
+
                 running_loss = 0.0
-    print('Finished Training')
+
+    print('exp {} : Finished Training'.format(exp_id))
+    return get_score(model, val_set, batch_size)
