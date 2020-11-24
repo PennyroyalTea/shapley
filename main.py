@@ -2,7 +2,7 @@ import torch
 
 import argparse
 
-from shapley_utils import get_score
+from shapley_utils import get_score, train_on_subset
 ###
 import itertools
 
@@ -17,6 +17,12 @@ import torchvision.transforms as T
 import torchvision.models as models
 import torchvision.datasets as datasets
 import torch.utils.data as data
+
+###
+import torch.optim as optim
+
+import torch.nn as nn
+import torch.nn.functional as F
 ###
 
 from shapley import monte_carlo
@@ -32,6 +38,8 @@ print()
 
 model = models.resnet18(pretrained=True).cuda()
 model.fc = torch.nn.Linear(512, 10).cuda()
+
+print(model)
 
 data_transforms = T.Compose(
     [T.Resize((224, 224)),
@@ -51,42 +59,14 @@ train_data = datasets.ImageFolder(
     root="./imagewoof2-320/train",
     transform=data_transforms
 )
-trainloader = data.DataLoader(
-    train_data,
-    shuffle=True,
-    batch_size=16
-)
-def trainloop(loader):
-  for epoch in range(5):  # loop over the dataset multiple times
+# trainloader = data.DataLoader(
+#     train_data,
+#     shuffle=True,
+#     batch_size=16
+# )
 
-      running_loss = 0.0
-      for i, data in enumerate(loader, 0):
-          # get the inputs; data is a list of [inputs, labels]
-          inputs, labels = data
-
-          inputs = inputs.cuda()
-          labels = labels.cuda()
-
-          # zero the parameter gradients
-          optimizer.zero_grad()
-
-          # forward + backward + optimize
-          outputs = model(inputs)
-          loss = criterion(outputs, labels)
-          loss.backward()
-          optimizer.step()
-
-          # print statistics
-          running_loss += loss.item()
-          if i % 100 == 99:    # print every 20 mini-batches
-              print('[%d, %5d] loss: %.7f' %
-                    (epoch + 1, i + 1, running_loss / 100))
-              running_loss = 0.0
-
-  print('Finished Training')
-  trainloop(trainloader)
 ###
 
-print(model)
+train_on_subset(model, train_data, list(range(len(train_data))))
 
 print(get_score(model, val_data))
