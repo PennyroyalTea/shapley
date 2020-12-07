@@ -5,8 +5,6 @@ import torch.utils.data
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from torch.utils.tensorboard import SummaryWriter
 
-from trains import Task
-
 def get_score(model, val_set, batch_size=16):
 
     criterion = torch.nn.CrossEntropyLoss() ##### temporary
@@ -43,6 +41,9 @@ def train_on_subset(model,
                     batch_size=16, epochs=5,
                     criterion=None,
                     optimizer=None):
+    ########################
+    print('lelelele')
+    ########################
 
     debug_step = 100 # debug output running loss every x batches
 
@@ -56,9 +57,6 @@ def train_on_subset(model,
 
     # turn on training mode
     model.train()
-
-    # add trains
-    task = Task.init(project_name='astral', task_name='train_on_subset_{}'.format(exp_id))
 
     # summaryWriter for logging
     writer = SummaryWriter()

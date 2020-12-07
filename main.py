@@ -1,5 +1,7 @@
 import torch
 
+from trains import Task
+
 import argparse
 
 from shapley_utils import get_score, train_on_subset
@@ -26,6 +28,8 @@ import torch.nn.functional as F
 ###
 
 from shapley import monte_carlo
+
+# from my_model import myResnet18
 
 # setting device on GPU if available, else CPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -59,10 +63,6 @@ train_data = datasets.ImageFolder(
     root="./imagewoof2-320/train",
     transform=data_transforms
 )
-
-# train_on_subset(model=model,
-#                 train_set=train_data, val_set=val_data,
-#                 permutation=list(range(len(train_data))))
 
 monte_carlo(
     train_set=train_data,
