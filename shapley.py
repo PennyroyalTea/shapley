@@ -12,9 +12,14 @@ def run_train_on_subs(
         controller_task, model, train_set,
         val_set, permutation, exp_id):
 
-    child = controller_task.create_function_task(
-        huy
-    )
+    for id in range(100):
+        child = controller_task.create_function_task(
+            huy,
+            func_name=f'{id}'
+        )
+        Task.enqueue(child, queue_name='default')
+        child.wait_for_status(status=['completed'])
+        child.reload()
     # child = controller_task.create_function_task(
     #     train_on_subset,
     #     arguments={
