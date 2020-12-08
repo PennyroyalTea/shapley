@@ -12,28 +12,20 @@ def run_train_on_subs(
         controller_task, model, train_set,
         val_set, permutation, exp_id):
 
-    for id in range(100):
-        child = controller_task.create_function_task(
-            huy,
-            func_name=f'{id}'
-        )
-        Task.enqueue(child, queue_name='default')
-        child.wait_for_status(status=['completed'])
-        child.reload()
-    # child = controller_task.create_function_task(
-    #     train_on_subset,
-    #     arguments={
-    #         'model': model,
-    #         'train_set': train_set,
-    #         'val_set': val_set,
-    #         'permutation': permutation,
-    #         'exp_id': exp_id
-    #     },
-    #     func_name=f'subset_{exp_id}'
-    # )
+    child = controller_task.create_function_task(
+        train_on_subset,
+        arguments={
+            'model': model,
+            'train_set': train_set,
+            'val_set': val_set,
+            'permutation': permutation,
+            'exp_id': exp_id
+        },
+        func_name=f'subset_{exp_id}'
+    )
 
     Task.enqueue(child, queue_name='default')
-    child.wait_for_status(status=['completed'])
+    child.wait_for_status(status=['completed', 'stopped'], check_interval_sec=1.)
     child.reload()
     return child.get_last_scalar_metrics()
 
@@ -55,10 +47,11 @@ def monte_carlo(train_set, val_set, model_class, ITER=1000, perf_tolerance=0.1):
         permutation=permutation,
         exp_id='full'
     )
+    print(f'V_D:{V_D}')
 
     print('empty exp')
     # score of untrained model
-    V_current = run_train_on_subset(
+    V_current = run_train_on_subs(
         controller_task=controller_task,
         model=model_class().cuda(),
         train_set=train_set,
@@ -66,6 +59,7 @@ def monte_carlo(train_set, val_set, model_class, ITER=1000, perf_tolerance=0.1):
         permutation=[],
         exp_id='empty'
     )
+    print(f'V_cur:{V_current}')
 
     V_prev = V_current
 
@@ -85,6 +79,7 @@ def monte_carlo(train_set, val_set, model_class, ITER=1000, perf_tolerance=0.1):
                     permutation=permutation[:i],
                     exp_id=exp_id
                 )
+                print(f'V_cur:{V_current}')
                 exp_id += 1
 
             shapley_vals[permutation[i]] = ((t - 1) * shapley_vals[permutation[i]] + (
