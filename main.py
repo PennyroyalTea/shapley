@@ -1,6 +1,5 @@
 import torch
-
-from trains import Task
+import random
 
 import argparse
 
@@ -39,6 +38,8 @@ print()
 #TODO: argparse
 
 # downloading dataset
+
+random.seed(1337)
 
 model = models.resnet18(pretrained=True).cuda()
 model.fc = torch.nn.Linear(512, 10).cuda()
