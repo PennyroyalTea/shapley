@@ -1,3 +1,5 @@
+import json
+
 import torch
 import torch.nn
 import torch.utils.data
@@ -38,14 +40,12 @@ def train_on_subset(model,
                     train_set, val_set,
                     permutation,
                     exp_id = -1,
-                    batch_size=16, epochs=5,
+                    res_dist = None,
+                    batch_size=256, epochs=5,
                     criterion=None,
                     optimizer=None):
-    ########################
-    print('lelelele')
-    ########################
 
-    debug_step = 100 # debug output running loss every x batches
+    debug_step = 10 # debug output running loss every x batches
 
     if optimizer is None:
         optimizer = torch.optim.SGD(model.fc.parameters(), lr=1e-4, momentum=0.9)
@@ -54,6 +54,9 @@ def train_on_subset(model,
         criterion = torch.nn.CrossEntropyLoss()
 
     print('exp {} : Starting Training'.format(exp_id))
+
+    # turn on cuda
+    model = model.cuda()
 
     # turn on training mode
     model.train()
@@ -107,3 +110,8 @@ def train_on_subset(model,
 
     print('exp {} : Finished Training'.format(exp_id))
     return get_score(model, val_set, batch_size)
+
+def save_res(perm_to_score, permutation, score, filename='score.json'):
+    perm_to_score[str(permutation)] = score
+    with open(filename, 'w') as f:
+        json.dump(perm_to_score, f, indent=4)
